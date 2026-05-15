@@ -7,8 +7,8 @@ indexName = "all_products"
 try:
     es = Elasticsearch(
     "https://localhost:9200",
-    basic_auth=("elastic", "LQym+efHnUy9DbT-jtD2"),
-    ca_certs="/Users/abidsaudagar/Personal/yt1_semantic_search/elasticsearch-8.9.1/config/certs/http_ca.crt"
+    basic_auth=("elastic", "AUHVn9oi7sAmpO6vM_zB"),
+    ca_certs="C:\\Users\\Lenovo\\Downloads\\elasticsearch-9.4.1-windows-x86_64\\elasticsearch-9.4.1\\config\\certs\\http_ca.crt"
     )
 except ConnectionError as e:
     print("Connection Error:", e)
@@ -23,20 +23,19 @@ else:
 
 def search(input_keyword):
     model = SentenceTransformer('all-mpnet-base-v2')
-    vector_of_input_keyword = model.encode(input_keyword)
+    vector_of_input_keyword = model.encode(input_keyword).tolist()
 
-    query = {
-        "field": "DescriptionVector",
-        "query_vector": vector_of_input_keyword,
-        "k": 10,
-        "num_candidates": 500
-    }
-    res = es.knn_search(index="all_products"
-                        , knn=query 
-                        , source=["ProductName","Description"]
-                        )
+    res = es.search(
+        index="all_products",
+        knn={
+            "field": "DescriptionVector",
+            "query_vector": vector_of_input_keyword,
+            "k": 2,
+            "num_candidates": 500
+        },
+        source=["ProductName", "Description"]
+    )
     results = res["hits"]["hits"]
-
     return results
 
 def main():
